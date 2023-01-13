@@ -116,7 +116,7 @@ void saveBoard(string fileName, vector<vector<char>> board)
 
 }
 
-vector<vector<char>> gol(vector<vector<char>> board, int generations)
+vector<vector<char>> gol_seq(vector<vector<char>> board, int generations)
 {
 	vector<vector<char>> nextBoard = board;
 	int aliveNeighbors = 0;
@@ -423,6 +423,8 @@ int main(int argc, char* argv[])
 	bool measure = false;
 	int counter;
 	vector<vector<char>> board;
+	bool omp = false;
+	int threads;
 
 	// Handle command line parameters
 	if (argc == 1)
@@ -451,6 +453,13 @@ int main(int argc, char* argv[])
 
 			if (string(argv[counter]) == "--measure")
 				measure = true;
+
+			if (string(argv[counter]) == "--mode" && counter + 1 < argc)
+				if(string(argv[counter + 1]) == "omp")
+					omp = true;
+
+			if (string(argv[counter]) == "--threads" && counter + 1 < argc)
+				threads = atoi(argv[counter + 1]);
 		}
 	}
 
@@ -477,7 +486,10 @@ int main(int argc, char* argv[])
 	timing->startComputation();
 
 	// Calculate new board after n generations
-	board = gol(board, generations);
+	if (omp == true)
+		cout<<"omp";
+	else
+		board = gol_seq(board, generations);
 
 	// Stop recording the Calculation time
 	timing->stopComputation();
