@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "Timing.h"
+#include <omp.h>
 
 using namespace std;
 
@@ -121,15 +122,312 @@ vector<vector<char>> gol_seq(vector<vector<char>> board, int generations)
 	vector<vector<char>> nextBoard = board;
 	int aliveNeighbors = 0;
 	int colSize = board[0].size();
+	int row, col;
 
 	for (int g = 1; g <= generations; g++)
 	{
 		//cout << "\n";
 		//cout << "Generation " << g << ":\n";
 
-		for (int row = 0; row < board.size(); row++)
+		for (row = 0; row < board.size(); row++)
+		{	
+			for (col = 0; col < colSize; col++)
+			{
+
+				// count of alive neighbors
+				aliveNeighbors = 0;
+
+				// pattern
+				// 1 2 3
+				// 4 X 9
+				// 6 7 8
+
+				// case for cell "X" is not on the border & corners (no wrap around needed)
+				if (row > 0 && row < board.size() - 1 && col > 0 && col < colSize - 1)
+				{
+					// 1 
+					if (board[row - 1][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 2
+					if (board[row - 1][col] == 'x') { aliveNeighbors++; }
+
+					// 3
+					if (board[row - 1][col + 1] == 'x') { aliveNeighbors++; }
+
+					// 4
+					if (board[row][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 6
+					if (board[row + 1][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 7
+					if (board[row + 1][col] == 'x') { aliveNeighbors++; }
+
+					// 8
+					if (board[row + 1][col + 1] == 'x') { aliveNeighbors++; }
+
+					// 9
+					if (board[row][col + 1] == 'x') { aliveNeighbors++; }
+				}
+
+				// case for cell "X" is on the top row but not in the top corners
+				else if (row == 0 && col > 0 && col < colSize - 1)
+				{
+					// 1 wrap around
+					if (board[board.size() - 1][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 2 wrap around
+					if (board[board.size() - 1][col] == 'x') { aliveNeighbors++; }
+
+					// 3 wrap around
+					if (board[board.size() - 1][col + 1] == 'x') { aliveNeighbors++; }
+
+					// 4
+					if (board[row][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 6
+					if (board[row + 1][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 7
+					if (board[row + 1][col] == 'x') { aliveNeighbors++; }
+
+					// 8
+					if (board[row + 1][col + 1] == 'x') { aliveNeighbors++; }
+
+					// 9
+					if (board[row][col + 1] == 'x') { aliveNeighbors++; }
+				}
+
+				// case for cell "X" is on the bottom row but not in the bottom corners
+				else if (row == board.size() - 1 && col > 0 && col < colSize - 1)
+				{
+					// 1 
+					if (board[row - 1][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 2
+					if (board[row - 1][col] == 'x') { aliveNeighbors++; }
+
+					// 3
+					if (board[row - 1][col + 1] == 'x') { aliveNeighbors++; }
+
+					// 4
+					if (board[row][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 6 wrap around
+					if (board[0][col] == 'x') { aliveNeighbors++; }
+
+					// 7 wrap around
+					if (board[0][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 8 wrap around
+					if (board[0][col + 1] == 'x') { aliveNeighbors++; }
+
+					// 9 
+					if (board[row][col + 1] == 'x') { aliveNeighbors++; }
+				}
+
+				// case for cell "X" is on the left side but not in the corners
+				else if (col == 0 && row > 0 && row < board.size() - 1)
+				{
+					// 1 wrap around
+					if (board[row - 1][colSize - 1] == 'x') { aliveNeighbors++; }
+
+					// 2
+					if (board[row - 1][col] == 'x') { aliveNeighbors++; }
+
+					// 3
+					if (board[row - 1][col + 1] == 'x') { aliveNeighbors++; }
+
+					// 4 wrap around
+					if (board[row][colSize - 1] == 'x') { aliveNeighbors++; }
+
+					// 6 wrap around
+					if (board[row + 1][colSize - 1] == 'x') { aliveNeighbors++; }
+
+					// 7
+					if (board[row + 1][col] == 'x') { aliveNeighbors++; }
+
+					// 8
+					if (board[row + 1][col + 1] == 'x') { aliveNeighbors++; }
+
+					// 9
+					if (board[row][col + 1] == 'x') { aliveNeighbors++; }
+				}
+
+				// case for cell "X" is on the right side but not in the corners
+				else if (col == colSize - 1 && row > 0 && row < board.size() - 1)
+				{
+					// 1 
+					if (board[row - 1][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 2
+					if (board[row - 1][col] == 'x') { aliveNeighbors++; }
+
+					// 3 wrap around
+					if (board[row - 1][0] == 'x') { aliveNeighbors++; }
+
+					// 4
+					if (board[row][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 6
+					if (board[row + 1][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 7
+					if (board[row + 1][col] == 'x') { aliveNeighbors++; }
+
+					// 8 wrap around
+					if (board[row + 1][0] == 'x') { aliveNeighbors++; }
+
+					// 9 wrap around
+					if (board[row][0] == 'x') { aliveNeighbors++; }
+				}
+
+				// case for cell "X" is on the left top corner
+				else if (row == 0 && col == 0)
+				{
+					// 1 wrap around
+					if (board[board.size() - 1][colSize - 1] == 'x') { aliveNeighbors++; }
+
+					// 2 wrap around
+					if (board[board.size() - 1][col] == 'x') { aliveNeighbors++; }
+
+					// 3 wrap around
+					if (board[board.size() - 1][col + 1] == 'x') { aliveNeighbors++; }
+
+					// 4 wrap around
+					if (board[0][colSize - 1] == 'x') { aliveNeighbors++; }
+
+					// 9 
+					if (board[0][1] == 'x') { aliveNeighbors++; }
+
+					// 6 wrap around
+					if (board[1][colSize - 1] == 'x') { aliveNeighbors++; }
+
+					// 7
+					if (board[1][0] == 'x') { aliveNeighbors++; }
+
+					// 8
+					if (board[1][1] == 'x') { aliveNeighbors++; }
+				}
+
+				// case for cell "X" is on the right top corner
+				else if (row == 0 && col == colSize - 1)
+				{
+					// 1 wrap around
+					if (board[board.size() - 1][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 2 wrap around
+					if (board[board.size() - 1][col] == 'x') { aliveNeighbors++; }
+
+					// 3 wrap around
+					if (board[board.size() - 1][0] == 'x') { aliveNeighbors++; }
+
+					// 4 
+					if (board[0][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 9 
+					if (board[0][0] == 'x') { aliveNeighbors++; }
+
+					// 6 
+					if (board[1][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 7
+					if (board[1][col] == 'x') { aliveNeighbors++; }
+
+					// 8 wrap around
+					if (board[1][0] == 'x') { aliveNeighbors++; }
+				}
+
+				// case for cell "X" is on the left bottom corner
+				else if (row == board.size() - 1 && col == 0)
+				{
+					// 1 wrap around
+					if (board[row - 1][colSize - 1] == 'x') { aliveNeighbors++; }
+
+					// 2 
+					if (board[row - 1][col] == 'x') { aliveNeighbors++; }
+
+					// 3 
+					if (board[row - 1][col + 1] == 'x') { aliveNeighbors++; }
+
+					// 4 wrap around
+					if (board[row][colSize - 1] == 'x') { aliveNeighbors++; }
+
+					// 9 
+					if (board[row][col + 1] == 'x') { aliveNeighbors++; }
+
+					// 6 wrap around
+					if (board[0][colSize - 1] == 'x') { aliveNeighbors++; }
+
+					// 7 wrap around
+					if (board[0][0] == 'x') { aliveNeighbors++; }
+
+					// 8 wrap around
+					if (board[0][1] == 'x') { aliveNeighbors++; }
+				}
+
+				// case for cell "X" is on the right bottom corner
+				else if (row == board.size() - 1 && col == colSize - 1)
+				{
+					// 1 
+					if (board[row - 1][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 2 
+					if (board[row - 1][col] == 'x') { aliveNeighbors++; }
+
+					// 3 wrap around
+					if (board[row - 1][0] == 'x') { aliveNeighbors++; }
+
+					// 4 
+					if (board[row][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 9 wrap around
+					if (board[row][0] == 'x') { aliveNeighbors++; }
+
+					// 6 wrap around
+					if (board[0][col - 1] == 'x') { aliveNeighbors++; }
+
+					// 7 wrap around
+					if (board[0][col] == 'x') { aliveNeighbors++; }
+
+					// 8 wrap around
+					if (board[0][0] == 'x') { aliveNeighbors++; }
+				}
+
+				// Rule 1
+				if (board[row][col] == '.' && aliveNeighbors == 3) { nextBoard[row][col] = 'x'; }
+
+				// Rule 2
+				if ((board[row][col] == 'x' && aliveNeighbors == 2) || (board[row][col] == 'x' && aliveNeighbors == 3)) { nextBoard[row][col] = 'x'; }
+
+				// Rule 3 & 4
+				if ((board[row][col] == 'x' && aliveNeighbors < 2) || (board[row][col] == 'x' && aliveNeighbors > 3)) { nextBoard[row][col] = '.'; }
+
+				//cout << nextBoard[i][j];
+			}
+			//cout << "\n";
+		}
+		board = nextBoard;
+	}
+	return board;
+}
+
+vector<vector<char>> gol_omp(vector<vector<char>> board, int generations, int threads)
+{
+	vector<vector<char>> nextBoard = board;
+	int aliveNeighbors = 0;
+	int colSize = board[0].size();
+	int row, col;
+
+	for (int g = 1; g <= generations; g++)
+	{
+		//cout << "\n";
+		//cout << "Generation " << g << ":\n";
+
+		#pragma omp parallel for collapse(2) private(row, col, aliveNeighbors) schedule(dynamic) num_threads(threads)
+		for (row = 0; row < board.size(); row++)
 		{
-			for (int col = 0; col < colSize; col++)
+			for (col = 0; col < colSize; col++)
 			{
 
 				// count of alive neighbors
@@ -423,8 +721,8 @@ int main(int argc, char* argv[])
 	bool measure = false;
 	int counter;
 	vector<vector<char>> board;
-	bool omp = false;
-	int threads;
+	bool omptest = false;
+	int threads = 1;
 
 	// Handle command line parameters
 	if (argc == 1)
@@ -456,7 +754,7 @@ int main(int argc, char* argv[])
 
 			if (string(argv[counter]) == "--mode" && counter + 1 < argc)
 				if(string(argv[counter + 1]) == "omp")
-					omp = true;
+					omptest = true;
 
 			if (string(argv[counter]) == "--threads" && counter + 1 < argc)
 				threads = atoi(argv[counter + 1]);
@@ -486,8 +784,10 @@ int main(int argc, char* argv[])
 	timing->startComputation();
 
 	// Calculate new board after n generations
-	if (omp == true)
-		cout<<"omp";
+	if (omptest == true)
+	{
+		board = gol_omp(board, generations, threads);
+	}
 	else
 		board = gol_seq(board, generations);
 
